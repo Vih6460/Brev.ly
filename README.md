@@ -23,20 +23,18 @@ npm run db:migrate
 npm run dev
 ```
 
-Abra **http://localhost:5173**. A API responde em **http://localhost:3333**.
+Abra **http://localhost:5173**. A API responde em **http://localhost:3333**. O CORS local permite também `http://127.0.0.1:5173`, endereço exibido pelo Vite. Em produção, configure `CORS_ORIGIN` com as origens públicas autorizadas.
 
 Se já houver Postgres instalado, crie um banco `brevly`, ajuste `DATABASE_URL` em `server/.env` e omita o comando do Docker. O servidor testa a conexão antes de aceitar requisições.
 
-Nesta máquina, os arquivos `.env` locais já foram preparados para um Postgres isolado em `127.0.0.1:54329`, dentro de `.local/postgres-dev`. Esses arquivos e os dados não entram no controle de versão. Para iniciar novamente esse banco:
+Nesta máquina, os arquivos `.env` locais já foram preparados para um Postgres isolado em `127.0.0.1:54329`, dentro de `.local/postgres-dev`. Esses arquivos e os dados não entram no controle de versão. `npm run dev` verifica a conexão antes de abrir API e frontend e inicia esse cluster existente automaticamente se estiver parado (requer `pg_ctl` no PATH). Não cria nem limpa bancos. Para executar novamente:
 
 ```sh
 cd /Users/vinicius/Documents/Rocketseat/Brevly
-pg_ctl -D "$PWD/.local/postgres-dev" -l "$PWD/.local/postgres-dev.log" \
-  -o '-h 127.0.0.1 -p 54329 -k /private/tmp' start
 npm run dev
 ```
 
-Se o banco já estiver ativo, omita o comando `start`. Para parar o banco: `pg_ctl -D "$PWD/.local/postgres-dev" stop`. Use o diretório atual: um processo iniciado antes de mover a pasta deve ser reiniciado para que os checkpoints apontem para o caminho correto.
+Se o banco configurado estiver indisponível e não for esse cluster local, o comando encerra com uma orientação para iniciá-lo; o frontend não fica aberto sem a API por falta de banco. Reiniciar somente o Docker não inicia o Postgres local da porta 54329. Para parar o banco: `pg_ctl -D "$PWD/.local/postgres-dev" stop`. Use o diretório atual: um processo iniciado antes de mover a pasta deve ser reiniciado para que os checkpoints apontem para o caminho correto.
 
 ## Configuração
 

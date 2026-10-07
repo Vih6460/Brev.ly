@@ -50,6 +50,8 @@ Estado da entrega (07/10/2026):
 - [x] Migrations iniciais e reaplicação, healthcheck healthy e usuário node validados no container.
 - [x] API Docker: saúde, criação, duplicação, validação, listagem, incremento, CORS e exclusão aprovados.
 - [x] Persistência de dados após reinício dos containers validada.
+- [x] Reinício do ambiente local validado: npm run dev inicia o Postgres existente quando parado.
+- [x] Listagem no navegador validada em localhost:5173 e 127.0.0.1:5173 (CORS local).
 - [x] Banco brevly preservado; testes de integração e navegador usaram somente brevly_test.
 - [x] README atualizado conforme resultados reais. Total: 74 testes aprovados.
 - [ ] Upload real no R2, leitura pela URL pública e download dessa URL no frontend.

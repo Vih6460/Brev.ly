@@ -10,6 +10,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "predev": "node scripts/ensure-dev-database.mjs",
     "dev": "concurrently -k -n api,web -c blue,magenta \"npm run dev -w server\" \"npm run dev -w web\"",
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces",
