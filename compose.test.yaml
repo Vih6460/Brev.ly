@@ -1,19 +1,18 @@
-name: brevly
+name: brevly-tests
 
 services:
   postgres:
     image: postgres:17-alpine
-    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: brevly
+      POSTGRES_DB: brevly_test
     ports:
-      - '127.0.0.1:5432:5432'
+      - '127.0.0.1:5433:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_test_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d brevly']
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d brevly_test']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -23,10 +22,8 @@ services:
     build:
       context: .
       dockerfile: server/Dockerfile
-    env_file:
-      - server/.env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/brevly
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/brevly_test
     command: ['node', 'dist/db/migrate.js']
     depends_on:
       postgres:
@@ -37,18 +34,17 @@ services:
     build:
       context: .
       dockerfile: server/Dockerfile
-    env_file:
-      - server/.env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/brevly
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/brevly_test
       HOST: 0.0.0.0
-      PORT: 3333
+      PORT: 3334
+      FRONTEND_URL: http://localhost:5174
+      CORS_ORIGIN: http://localhost:5174
     ports:
-      - '127.0.0.1:3333:3333'
+      - '127.0.0.1:3334:3334'
     depends_on:
       migrate:
         condition: service_completed_successfully
-    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres_test_data:

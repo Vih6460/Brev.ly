@@ -10,18 +10,20 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "predev": "node scripts/ensure-dev-database.mjs",
-    "dev": "concurrently -k -n api,web -c blue,magenta \"npm run dev -w server\" \"npm run dev -w web\"",
+    "dev": "npm run serve",
+    "preserve": "node scripts/ensure-docker-services.mjs",
+    "serve": "npm run dev -w web -- --strictPort",
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "test": "npm run test --workspaces",
-    "db:migrate": "npm run db:migrate -w server",
+    "db:migrate": "docker compose run --build --rm migrate",
     "check": "npm run typecheck && npm test && npm run build",
+    "pretest:integration": "docker compose -f compose.test.yaml up -d --wait postgres",
     "test:integration": "npm run test:integration -w server",
+    "pretest:e2e": "docker compose -f compose.test.yaml up --build -d --wait",
     "test:e2e": "npm run test:e2e -w web"
   },
   "devDependencies": {
-    "concurrently": "^10.0.5",
     "prettier": "^3.9.9"
   },
   "overrides": {
