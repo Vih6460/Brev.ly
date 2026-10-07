@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+**/dist
+.git
+.local
+**/.env
+**/.env.*
+**/coverage
+assets
+instrucoes.md
+checklist.txt
+web/src
+server/test
+*.log

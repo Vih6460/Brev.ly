@@ -1,0 +1,59 @@
+[ ] Back-end
+    [x] Deve ser possível criar um link
+    [x] Não deve ser possível criar um link com URL encurtada mal formatada
+    [x] Não deve ser possível criar um link com URL encurtada já existente
+    [x] Deve ser possível deletar um link
+    [x] Deve ser possível obter a URL original por meio de uma URL encurtada
+    [x] Deve ser possível listar todas as URL’s cadastradas
+    [x] Deve ser possível incrementar a quantidade de acessos de um link
+    [x] Deve ser possível exportar os links criados em um CSV
+    [ ] Deve ser possível acessar o CSV por meio de uma CDN (Amazon S3, Cloudflare R2, etc)
+    [x] Deve ser gerado um nome aleatório e único para o arquivo
+    [x] Deve ser possível realizar a listagem de forma performática
+    [x] O CSV deve ter campos como, URL original, URL encurtada, contagem de acessos e data de criação.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[x] Front-end
+    [x] Deve ser possível criar um link
+    [x] Não deve ser possível criar um link com encurtamento mal formatado
+    [x] Não deve ser possível criar um link com encurtamento já existente
+    [x] Deve ser possível deletar um link
+    [x] Deve ser possível obter a URL original por meio do encurtamento
+    [x] Deve ser possível listar todas as URL’s cadastradas
+    [x] Deve ser possível incrementar a quantidade de acessos de um link
+    [x] Deve ser possível baixar um CSV com o relatório dos links criados
+    [x] É obrigatória a criação de uma aplicação React no formato SPA utilizando o Vite como `bundler`;
+    [x] Siga o mais fielmente possível o layout do Figma;
+    [x] Trabalhe com elementos que tragam uma boa experiência ao usuário (`empty state`, ícones de carregamento, bloqueio de ações a depender do estado da aplicação);
+    [x] Foco na responsividade: essa aplicação deve ter um bom uso tanto em desktops quanto em celulares.
+
+Estado da entrega (07/10/2026):
+- [x] TypeScript, Fastify, Drizzle e Postgres em server.
+- [x] TypeScript, React e Vite SPA em web.
+- [x] .env.example nos dois projetos, script db:migrate e migrations versionadas.
+- [x] CORS, paginação por cursor e índice composto para listagem.
+- [x] Incremento atômico e restrição única para concorrência.
+- [x] Exportação CSV por cursor e upload multipart para R2 implementados.
+- [x] Configuração R2 inspecionada sem exibir segredos: cinco variáveis vazias.
+- [x] Plugin Figma: contexto e screenshots de Estilos, Componentes e oito telas desktop/mobile obtidos.
+- [x] Interface ajustada e comparada visualmente: listagem, estado vazio, redirecionamento e 404.
+- [x] Assets originais do Figma locais; cores, tipografia, dimensões, espaçamentos e estados conferidos.
+- [x] npm run check: 49 testes unitários/de componentes, tipos e builds aprovados.
+- [x] npm run test:integration: 17 testes aprovados em Postgres separado.
+- [x] Playwright: 8 testes no Chrome aprovados (4 desktop e 4 mobile).
+- [x] Responsividade em 1366px, 390px e 320px, sem rolagem horizontal nos cenários testados.
+- [x] Download controlado no navegador conferido pelo nome e conteúdo do CSV.
+- [x] Estado vazio, carregamento, falha de rede e recuperação por nova tentativa validados.
+- [x] Docker iniciado, imagem construída e Compose executado em volume isolado.
+- [x] Migrations iniciais e reaplicação, healthcheck healthy e usuário node validados no container.
+- [x] API Docker: saúde, criação, duplicação, validação, listagem, incremento, CORS e exclusão aprovados.
+- [x] Persistência de dados após reinício dos containers validada.
+- [x] Banco brevly preservado; testes de integração e navegador usaram somente brevly_test.
+- [x] README atualizado conforme resultados reais. Total: 74 testes aprovados.
+- [ ] Upload real no R2, leitura pela URL pública e download dessa URL no frontend.
+      Preencher em server/.env: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_ACCESS_KEY_ID,
+      CLOUDFLARE_SECRET_ACCESS_KEY, CLOUDFLARE_BUCKET e CLOUDFLARE_PUBLIC_URL.
+      Habilitar acesso público e CORS GET/HEAD para a origem do frontend.
+      Depois reiniciar a API e validar Baixar CSV conforme o README.

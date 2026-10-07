@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+.local
+package-lock.json
+assets
+server/drizzle
+instrucoes.md
+checklist.txt
+playwright-report
+test-results
