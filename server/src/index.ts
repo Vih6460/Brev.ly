@@ -1,6 +1,6 @@
 import { readEnv } from './env.js';
 import { createDatabase } from './db/client.js';
-import { createR2Storage } from './services/storage.js';
+import { createCsvStorage } from './services/storage.js';
 import { buildApp } from './app.js';
 
 const env = readEnv();
@@ -9,7 +9,7 @@ const app = await buildApp({
   database,
   frontendUrl: env.FRONTEND_URL,
   corsOrigin: env.CORS_ORIGIN,
-  storage: createR2Storage(env),
+  storage: createCsvStorage(env),
   logger: true,
 });
 app.addHook('onClose', async () => {

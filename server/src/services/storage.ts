@@ -7,27 +7,42 @@ export interface CsvStorage {
   upload(key: string, body: Readable): Promise<string>;
 }
 
-export function createR2Storage(env: Env): CsvStorage | undefined {
+export function createCsvStorage(env: Env): CsvStorage | undefined {
   if (
-    !env.CLOUDFLARE_ACCOUNT_ID ||
-    !env.CLOUDFLARE_ACCESS_KEY_ID ||
-    !env.CLOUDFLARE_SECRET_ACCESS_KEY ||
-    !env.CLOUDFLARE_BUCKET ||
-    !env.CLOUDFLARE_PUBLIC_URL
-  )
-    return undefined;
-  const client = new S3Client({
-    region: 'auto',
-    endpoint: `https://${env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: env.CLOUDFLARE_ACCESS_KEY_ID,
-      secretAccessKey: env.CLOUDFLARE_SECRET_ACCESS_KEY,
-    },
-    requestChecksumCalculation: 'WHEN_REQUIRED',
-    responseChecksumValidation: 'WHEN_REQUIRED',
-  });
-  const bucket = env.CLOUDFLARE_BUCKET;
-  const publicUrl = env.CLOUDFLARE_PUBLIC_URL.replace(/\/$/, '');
+    env.SUPABASE_URL &&
+    env.SUPABASE_S3_REGION &&
+    env.SUPABASE_S3_ACCESS_KEY_ID &&
+    env.SUPABASE_S3_SECRET_ACCESS_KEY &&
+    env.SUPABASE_STORAGE_BUCKET
+  ) {
+    const baseUrl = env.SUPABASE_URL.replace(/\/+$/, '');
+    const endpoint = new URL(baseUrl);
+    // O hostname direto do Storage é recomendado pelo Supabase para uploads S3.
+    if (endpoint.hostname.endsWith('.supabase.co')) {
+      endpoint.hostname = endpoint.hostname.replace(/\.supabase\.co$/, '.storage.supabase.co');
+    }
+    endpoint.pathname = '/storage/v1/s3';
+    return createS3Storage(
+      new S3Client({
+        region: env.SUPABASE_S3_REGION,
+        endpoint: endpoint.toString(),
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: env.SUPABASE_S3_ACCESS_KEY_ID,
+          secretAccessKey: env.SUPABASE_S3_SECRET_ACCESS_KEY,
+        },
+        requestChecksumCalculation: 'WHEN_REQUIRED',
+        responseChecksumValidation: 'WHEN_REQUIRED',
+      }),
+      env.SUPABASE_STORAGE_BUCKET,
+      `${baseUrl}/storage/v1/object/public/${env.SUPABASE_STORAGE_BUCKET}`,
+    );
+  }
+  return undefined;
+}
+
+function createS3Storage(client: S3Client, bucket: string, basePublicUrl: string): CsvStorage {
+  const publicUrl = basePublicUrl.replace(/\/+$/, '');
   return {
     async upload(key, body) {
       const upload = new Upload({

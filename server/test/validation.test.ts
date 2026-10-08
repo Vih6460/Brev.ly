@@ -60,19 +60,36 @@ describe('CSV', () => {
 });
 
 describe('Configuração de ambiente', () => {
-  it('permite desenvolver sem R2 e rejeita configuração parcial', () => {
+  it('permite desenvolver sem Storage e rejeita configuração parcial', () => {
     expect(
-      envSchema.safeParse({ DATABASE_URL: 'postgres://localhost/brevly', CLOUDFLARE_BUCKET: '' })
-        .success,
+      envSchema.safeParse({
+        DATABASE_URL: 'postgres://localhost/brevly',
+        SUPABASE_STORAGE_BUCKET: '',
+      }).success,
     ).toBe(true);
     expect(
       envSchema.safeParse({
         DATABASE_URL: 'postgres://localhost/brevly',
-        CLOUDFLARE_BUCKET: 'exports',
+        SUPABASE_STORAGE_BUCKET: 'exports',
       }).success,
     ).toBe(false);
   });
   it('exige Postgres', () => {
     expect(envSchema.safeParse({ DATABASE_URL: 'https://example.com' }).success).toBe(false);
+  });
+  it('aceita Supabase completo e rejeita credenciais ou região ausentes', () => {
+    const config = {
+      DATABASE_URL: 'postgres://localhost/brevly',
+      SUPABASE_URL: 'https://project.supabase.co',
+      SUPABASE_S3_REGION: 'ca-central-1',
+      SUPABASE_S3_ACCESS_KEY_ID: 'test-key',
+      SUPABASE_S3_SECRET_ACCESS_KEY: 'test-secret',
+      SUPABASE_STORAGE_BUCKET: 'brevly-exports',
+    };
+    expect(envSchema.safeParse(config).success).toBe(true);
+    expect(envSchema.safeParse({ ...config, SUPABASE_S3_SECRET_ACCESS_KEY: '' }).success).toBe(
+      false,
+    );
+    expect(envSchema.safeParse({ ...config, SUPABASE_S3_REGION: '' }).success).toBe(false);
   });
 });

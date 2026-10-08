@@ -1,4 +1,4 @@
-[ ] Back-end
+[x] Back-end
     [x] Deve ser possível criar um link
     [x] Não deve ser possível criar um link com URL encurtada mal formatada
     [x] Não deve ser possível criar um link com URL encurtada já existente
@@ -7,7 +7,7 @@
     [x] Deve ser possível listar todas as URL’s cadastradas
     [x] Deve ser possível incrementar a quantidade de acessos de um link
     [x] Deve ser possível exportar os links criados em um CSV
-    [ ] Deve ser possível acessar o CSV por meio de uma CDN (Amazon S3, Cloudflare R2, etc)
+    [x] Deve ser possível acessar o CSV por meio de uma CDN (Supabase Storage)
     [x] Deve ser gerado um nome aleatório e único para o arquivo
     [x] Deve ser possível realizar a listagem de forma performática
     [x] O CSV deve ter campos como, URL original, URL encurtada, contagem de acessos e data de criação.
@@ -29,18 +29,17 @@
     [x] Trabalhe com elementos que tragam uma boa experiência ao usuário (`empty state`, ícones de carregamento, bloqueio de ações a depender do estado da aplicação);
     [x] Foco na responsividade: essa aplicação deve ter um bom uso tanto em desktops quanto em celulares.
 
-Estado da entrega (07/10/2026):
+Estado da entrega (08/10/2026):
 - [x] TypeScript, Fastify, Drizzle e Postgres em server.
 - [x] TypeScript, React e Vite SPA em web.
 - [x] .env.example nos dois projetos, script db:migrate e migrations versionadas.
 - [x] CORS, paginação por cursor e índice composto para listagem.
 - [x] Incremento atômico e restrição única para concorrência.
-- [x] Exportação CSV por cursor e upload multipart para R2 implementados.
-- [x] Configuração R2 inspecionada sem exibir segredos: cinco variáveis vazias.
+- [x] Exportação CSV por cursor e upload multipart para Supabase Storage implementados.
 - [x] Plugin Figma: contexto e screenshots de Estilos, Componentes e oito telas desktop/mobile obtidos.
 - [x] Interface ajustada e comparada visualmente: listagem, estado vazio, redirecionamento e 404.
 - [x] Assets originais do Figma locais; cores, tipografia, dimensões, espaçamentos e estados conferidos.
-- [x] npm run check: 49 testes unitários/de componentes, tipos e builds aprovados.
+- [x] npm run check: 53 testes unitários/de componentes, tipos e builds aprovados.
 - [x] npm run test:integration: 17 testes reaprovados em Postgres no Compose de testes.
 - [x] Playwright: 8 testes reaprovados no Chrome (4 desktop e 4 mobile), com API e banco no Docker.
 - [x] Responsividade em 1366px, 390px e 320px, sem rolagem horizontal nos cenários testados.
@@ -59,9 +58,27 @@ Estado da entrega (07/10/2026):
 - [x] Listagem dos dez links e clique/digitação no prefixo do input conferidos no navegador.
 - [x] Listagem no navegador validada em localhost:5173 e 127.0.0.1:5173 (CORS local).
 - [x] Banco brevly preservado; testes usam Compose brevly-tests e volume de teste separado.
-- [x] README atualizado conforme resultados reais. Total: 74 testes aprovados.
-- [ ] Upload real no R2, leitura pela URL pública e download dessa URL no frontend.
-      Preencher em server/.env: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_ACCESS_KEY_ID,
-      CLOUDFLARE_SECRET_ACCESS_KEY, CLOUDFLARE_BUCKET e CLOUDFLARE_PUBLIC_URL.
-      Habilitar acesso público e CORS GET/HEAD para a origem do frontend.
-      Depois reiniciar a API e validar Baixar CSV conforme o README.
+- [x] README atualizado conforme resultados reais. Total: 78 testes aprovados.
+- [x] Supabase escolhido como provedor dos CSVs; banco de links permanece no Docker.
+- [x] Acesso ao projeto Brev.ly confirmado; reativação concluída e status ACTIVE_HEALTHY.
+- [x] Bucket brevly-exports criado; nome e acesso público confirmados pelo plugin Supabase.
+- [x] Advisors de segurança do Supabase sem alertas na consulta realizada.
+- [x] Integração S3 do Supabase implementada, com região do projeto e caminho público completo.
+- [x] Testes do SDK S3: conteúdo, assinatura, URL pública, rejeição de upload e configuração parcial.
+- [x] Imagem reconstruída e migrations/healthcheck aprovados no Compose de testes nesta rodada.
+- [x] Credenciais S3 geradas pelo usuário e cinco variáveis do backend preenchidas sem exibir segredos.
+- [x] SUPABASE_URL corrigida do endpoint S3 para a URL base do projeto.
+- [x] Compose principal reconstruído e saudável; migrations concluídas e 12 links preservados por assinatura.
+- [x] Autenticação S3 real aprovada após substituição do par de credenciais pelo usuário.
+- [x] Upload real no Supabase pela API: POST /links/export retornou 200.
+- [x] URL pública retornou 200 sem autenticação; CORS permitiu o download pelo navegador.
+- [x] CSV real validado: quatro colunas, BOM UTF-8, 12 links e 1.229 bytes.
+- [x] Baixar CSV aprovado no desktop (1366×720) e celular (390×788), com mensagem de sucesso.
+- [x] Nomes únicos e conteúdo dos dois arquivos baixados idêntico ao relatório público.
+- [x] Dados da aplicação preservados após recriação e downloads: 12 links e assinatura inalterada.
+- [x] Evidências locais em .local/validation/supabase-20261008/; documentação atualizada.
+- [x] Provedor antigo removido do código, testes, variáveis locais/exemplo e documentação; somente Supabase Storage.
+- [x] Revisão final: 78 testes reaprovados após a limpeza, imagem reconstruída e CSV real novamente aprovado.
+- [x] Doze links preservados na revisão final; contadores e demais campos com assinatura inalterada.
+- [x] Entrega conferida: segredos, backups, dependências e arquivos gerados fora do Git.
+      Projeto: nfougzxwrpyvzmgtaide; região: ca-central-1; bucket: brevly-exports.

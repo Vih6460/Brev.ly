@@ -149,7 +149,7 @@ test('mostra estado vazio, carregamento e recupera falha de rede', async ({ page
   });
 });
 
-test('trata R2 sem configuração e baixa CSV com resposta pública controlada', async ({
+test('trata Storage sem configuração e baixa CSV com resposta pública controlada', async ({
   page,
   request,
 }) => {

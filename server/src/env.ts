@@ -15,27 +15,24 @@ export const envSchema = z
       .refine((value) => /^postgres(?:ql)?:\/\//.test(value), 'Use uma conexão Postgres.'),
     FRONTEND_URL: z.url().default('http://localhost:5173'),
     CORS_ORIGIN: z.string().default('http://localhost:5173'),
-    CLOUDFLARE_ACCOUNT_ID: optionalText,
-    CLOUDFLARE_ACCESS_KEY_ID: optionalText,
-    CLOUDFLARE_SECRET_ACCESS_KEY: optionalText,
-    CLOUDFLARE_BUCKET: optionalText,
-    CLOUDFLARE_PUBLIC_URL: z.preprocess(
-      (value) => (value === '' ? undefined : value),
-      z.url().optional(),
-    ),
+    SUPABASE_URL: z.preprocess((value) => (value === '' ? undefined : value), z.url().optional()),
+    SUPABASE_S3_REGION: optionalText,
+    SUPABASE_S3_ACCESS_KEY_ID: optionalText,
+    SUPABASE_S3_SECRET_ACCESS_KEY: optionalText,
+    SUPABASE_STORAGE_BUCKET: optionalText,
   })
   .superRefine((config, context) => {
-    const keys = [
-      'CLOUDFLARE_ACCOUNT_ID',
-      'CLOUDFLARE_ACCESS_KEY_ID',
-      'CLOUDFLARE_SECRET_ACCESS_KEY',
-      'CLOUDFLARE_BUCKET',
-      'CLOUDFLARE_PUBLIC_URL',
+    const supabaseKeys = [
+      'SUPABASE_URL',
+      'SUPABASE_S3_REGION',
+      'SUPABASE_S3_ACCESS_KEY_ID',
+      'SUPABASE_S3_SECRET_ACCESS_KEY',
+      'SUPABASE_STORAGE_BUCKET',
     ] as const;
-    if (keys.some((key) => config[key]) && !keys.every((key) => config[key])) {
+    if (supabaseKeys.some((key) => config[key]) && !supabaseKeys.every((key) => config[key])) {
       context.addIssue({
         code: 'custom',
-        message: 'Preencha todas as cinco variáveis CLOUDFLARE_ para habilitar o R2.',
+        message: 'Preencha todas as cinco variáveis SUPABASE_ para habilitar o Storage.',
       });
     }
   });

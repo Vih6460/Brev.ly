@@ -75,59 +75,55 @@ docker compose logs postgres migrate server
 
 ## Configuração
 
-Os arquivos `server/.env.example` e `web/.env.example` documentam as variáveis. Nunca coloque as credenciais do Cloudflare no frontend.
+Os arquivos `server/.env.example` e `web/.env.example` documentam as variáveis. As credenciais S3 do Supabase ficam exclusivamente no backend.
 
-| Variável            | Uso                                                      |
-| ------------------- | -------------------------------------------------------- |
-| `PORT`, `HOST`      | Endereço da API                                          |
-| `DATABASE_URL`      | Conexão Postgres                                         |
-| `FRONTEND_URL`      | Origem pública dos links usados no relatório             |
-| `CORS_ORIGIN`       | Origem permitida; aceita uma lista separada por vírgulas |
-| `VITE_FRONTEND_URL` | Origem pública dos links copiados e exibidos             |
-| `VITE_BACKEND_URL`  | Origem da API                                            |
-| `TEST_DATABASE_URL` | Banco separado com nome terminado em `_test`             |
-| `CLOUDFLARE_*`      | Upload e endereço público dos relatórios no R2           |
+| Variável            | Uso                                                          |
+| ------------------- | ------------------------------------------------------------ |
+| `PORT`, `HOST`      | Endereço da API                                              |
+| `DATABASE_URL`      | Conexão Postgres                                             |
+| `FRONTEND_URL`      | Origem pública dos links usados no relatório                 |
+| `CORS_ORIGIN`       | Origem permitida; aceita uma lista separada por vírgulas     |
+| `VITE_FRONTEND_URL` | Origem pública dos links copiados e exibidos                 |
+| `VITE_BACKEND_URL`  | Origem da API                                                |
+| `TEST_DATABASE_URL` | Banco separado com nome terminado em `_test`                 |
+| `SUPABASE_*`        | Upload e endereço público dos relatórios no Supabase Storage |
 
 As duas URLs do frontend devem apontar para a mesma origem, sem caminhos ou parâmetros. Ao alterar variáveis `VITE_*` em produção, gere um novo build.
 
-## Exportação CSV no Cloudflare R2
+## Exportação CSV no Supabase Storage
 
-1. Crie um bucket no R2 e um token com permissão de leitura e escrita de objetos nesse bucket.
-2. Habilite um domínio público, preferencialmente um domínio personalizado, para o bucket.
-3. Preencha as cinco variáveis `CLOUDFLARE_*` em `server/.env`. `CLOUDFLARE_PUBLIC_URL` é a origem pública do bucket, por exemplo `https://downloads.seudominio.com`, sem o nome do bucket.
-4. Configure CORS no bucket para permitir o download pelo navegador. Substitua a origem pelo endereço do seu frontend:
+O provedor escolhido é o Supabase Storage no projeto **Brev.ly** (`nfougzxwrpyvzmgtaide`, região `ca-central-1`). O banco de links continua exclusivamente no Docker; o Supabase armazena apenas os relatórios CSV.
 
-```json
-[
-  {
-    "AllowedOrigins": ["http://localhost:5173"],
-    "AllowedMethods": ["GET", "HEAD"],
-    "AllowedHeaders": ["*"],
-    "ExposeHeaders": ["Content-Disposition", "Content-Type"],
-    "MaxAgeSeconds": 3600
-  }
-]
-```
+1. No painel do projeto, acesse **Storage → Files → New bucket**, crie `brevly-exports` e habilite **Public bucket**. Os CSVs poderão ser lidos por quem tiver sua URL.
+2. Em **Storage → S3 → S3 Access Keys**, gere um par de credenciais S3 para o backend. Use a seção de configuração S3 do Storage caso os menus do painel mudem. Essas chaves têm acesso privilegiado ao Storage do projeto: não as coloque no frontend nem em mensagens.
+3. Preencha todas as cinco variáveis abaixo em `server/.env`, juntas. Uma configuração parcialmente preenchida impede a inicialização da API para evitar uploads mal configurados.
 
-5. Recrie a API com `docker compose up -d --force-recreate server` e use **Baixar CSV**.
+| Variável                        | Valor                                      |
+| ------------------------------- | ------------------------------------------ |
+| `SUPABASE_URL`                  | `https://nfougzxwrpyvzmgtaide.supabase.co` |
+| `SUPABASE_S3_REGION`            | `ca-central-1`                             |
+| `SUPABASE_S3_ACCESS_KEY_ID`     | Access Key ID gerado na configuração S3    |
+| `SUPABASE_S3_SECRET_ACCESS_KEY` | Secret Access Key correspondente           |
+| `SUPABASE_STORAGE_BUCKET`       | `brevly-exports`                           |
 
-Referências oficiais: [acesso público ao bucket](https://developers.cloudflare.com/r2/buckets/public-buckets/) e [CORS do R2](https://developers.cloudflare.com/r2/buckets/cors/).
+`SUPABASE_URL` é a URL base do projeto, sem barra invertida antes de `:` e sem `/storage/v1/s3`. O endpoint mostrado em **S3 Configuration**, `https://nfougzxwrpyvzmgtaide.storage.supabase.co/storage/v1/s3`, é calculado automaticamente pelo backend. A URL pública de download usa a URL base com `/storage/v1/object/public/brevly-exports/exports/…`.
+
+4. Reconstrua e inicie os containers com `docker compose up --build -d --wait`. As migrations são automáticas. Inicie o frontend com `npm run serve`.
+5. Clique em **Baixar CSV**. A validação real precisa confirmar `POST /links/export` com status 200, leitura pública da URL retornada e download no navegador com as quatro colunas.
+
+O upload usa o endpoint S3 direto do Storage, região do projeto e URLs públicas com o caminho completo do bucket. Não são necessárias políticas de upload anônimo: o backend usa as credenciais S3. Referências: [autenticação S3](https://supabase.com/docs/guides/storage/s3/authentication) e [buckets públicos](https://supabase.com/docs/guides/storage/buckets/fundamentals).
 
 O relatório contém `url_original`, `url_encurtada`, `acessos` e `data_criacao`. Os nomes usam UUID e os objetos ficam em `exports/`. A leitura usa um cursor Postgres de 500 registros e upload multipart com memória limitada. Datas são exportadas em UTC/ISO 8601. O CSV tem BOM UTF-8 para preservar os acentos em planilhas, escape de aspas e proteção contra fórmulas.
 
-Sem configuração R2, o restante da aplicação funciona e a exportação retorna `503 EXPORT_NOT_CONFIGURED`. A integração usa o endpoint S3 do R2, região `auto`, upload multipart, tipo CSV e `Content-Disposition` de download. Testes validam streaming, conteúdo, falhas e download com um destino controlado.
+Sem o Supabase Storage configurado, o restante da aplicação funciona e a exportação retorna `503 EXPORT_NOT_CONFIGURED`. Os testes locais verificam o SDK S3, assinatura regional, conteúdo, URL pública, falhas e download com destino controlado; isso não substitui a validação na nuvem.
 
-Na verificação de **07/10/2026**, as cinco variáveis estavam vazias em `server/.env`. Faltam:
+Em **08/10/2026**, o projeto Supabase foi reativado e estava saudável. O bucket `brevly-exports` foi criado e seu acesso público foi confirmado pelo plugin Supabase. As cinco variáveis `SUPABASE_*` foram preenchidas sem expor as chaves. `SUPABASE_URL` foi corrigida do endpoint S3 para a URL base do projeto; o backend calcula o endpoint S3 automaticamente.
 
-| Variável                       | Preencher com                                                       |
-| ------------------------------ | ------------------------------------------------------------------- |
-| `CLOUDFLARE_ACCOUNT_ID`        | ID da conta Cloudflare proprietária do bucket                       |
-| `CLOUDFLARE_ACCESS_KEY_ID`     | Access Key ID das credenciais S3 do R2                              |
-| `CLOUDFLARE_SECRET_ACCESS_KEY` | Secret Access Key correspondente                                    |
-| `CLOUDFLARE_BUCKET`            | Nome do bucket                                                      |
-| `CLOUDFLARE_PUBLIC_URL`        | Origem pública HTTPS do bucket, sem `/exports` e sem nome do bucket |
+A validação real foi concluída após o usuário substituir o par de credenciais S3. A imagem foi reconstruída, o Compose principal ficou saudável e as migrations terminaram com sucesso. Os 12 links existentes nesta rodada foram preservados, com quantidade e assinatura de todos os registros iguais antes e depois.
 
-Habilite acesso público e o CORS descrito acima. Após preencher, execute `docker compose up -d --force-recreate server`, cadastre um link e clique em **Baixar CSV**. A validação real deve confirmar `POST /links/export` com status 200, leitura pública da URL retornada e arquivo baixado pelo navegador com as quatro colunas. **Upload real, acesso público e download a partir do R2 continuam pendentes**; não foram substituídos por resultados simulados.
+**Resultados reais em 08/10/2026:** `POST /links/export` retornou 200; a URL pública respondeu 200 sem autenticação e permitiu acesso pelo navegador (`Access-Control-Allow-Origin: *`). O arquivo de 1.229 bytes contém BOM UTF-8, as quatro colunas e os 12 links. O botão **Baixar CSV** funcionou no desktop (1366×720) e no celular (390×788), exibindo a mensagem de sucesso. Os dois arquivos baixados têm nomes únicos e conteúdo idêntico ao CSV obtido diretamente pela URL pública. Evidências e screenshots estão em `.local/validation/supabase-20261008/`. A validação real da exportação está concluída, além dos 78 testes locais aprovados.
+
+Se o Storage retornar `403 SignatureDoesNotMatch`, confira se Access Key ID e Secret Access Key pertencem ao mesmo par gerado no projeto. Depois de substituir as duas variáveis em `server/.env`, recrie a API com `docker compose up --build -d --wait`.
 
 ## API
 
@@ -201,7 +197,11 @@ Ao terminar os testes, pare seus containers:
 docker compose -f compose.test.yaml stop
 ```
 
-Resultados de **07/10/2026**: `npm run check` aprovado (49 testes unitários/de componentes, tipos e builds); `npm run test:integration` aprovado (17 testes); Playwright no Chrome aprovado (8 testes: 4 desktop e 4 mobile). **Total: 74 testes aprovados**. Nesta rodada, integração e navegador usaram exclusivamente o Postgres e a API do `compose.test.yaml`, no volume de teste isolado.
+Resultados de **08/10/2026**: `npm run check` aprovado (53 testes unitários/de componentes, tipos e builds); `npm run test:integration` aprovado (17 testes); Playwright no Chrome aprovado (8 testes: 4 desktop e 4 mobile). **Total: 78 testes aprovados**. Nesta rodada, integração e navegador usaram exclusivamente o Postgres e a API do `compose.test.yaml`, no volume de teste isolado.
+
+A revisão final removeu a integração antiga de armazenamento, suas variáveis e os textos sem uso. O Supabase Storage é o único provedor configurável. Os 78 testes foram reaprovados após a limpeza; a imagem principal foi reconstruída e o upload real e a leitura pública do CSV foram novamente aprovados com status 200. Os 12 links, contadores e demais campos foram preservados.
+
+Para entregar pelo Git, inclua as alterações mais recentes no commit e faça o push antes de compartilhar o repositório. Os arquivos `.env`, `.local/`, dependências, builds e resultados de testes estão ignorados. Foram conferidos os arquivos versionados e o histórico dos arquivos `.env`: as credenciais S3 não estão na entrega. Quem executar uma cópia do projeto deve criar seus arquivos `.env` a partir dos exemplos e preencher as credenciais do próprio Supabase Storage conforme as etapas acima.
 
 ## Docker e produção
 
@@ -220,4 +220,4 @@ A validação anterior do Docker também cobriu migrations iniciais e reaplicaç
 
 A instalação limpa das dependências de produção, a importação do backend compilado e a execução das migrations compiladas foram verificadas em uma pasta temporária com a mesma estrutura usada no Dockerfile. A auditoria das dependências de produção não apontou vulnerabilidades.
 
-Para o frontend, publique o conteúdo de `web/dist` em um host estático com fallback de todas as rotas para `index.html`, necessário para a SPA. `web/nginx.conf` inclui essa configuração. Use URLs públicas de frontend/backend nas variáveis de produção e configure a origem correspondente no CORS da API e do R2.
+Para o frontend, publique o conteúdo de `web/dist` em um host estático com fallback de todas as rotas para `index.html`, necessário para a SPA. `web/nginx.conf` inclui essa configuração. Use URLs públicas de frontend/backend nas variáveis de produção e configure a origem correspondente no CORS da API.

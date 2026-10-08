@@ -163,7 +163,7 @@ describe('API com Postgres real', () => {
     expect(csv).toContain('"http://localhost:5173/link-1001","1001"');
     expect(csv).toMatch(/"\d{4}-\d{2}-\d{2}T/);
   });
-  it('retorna erro claro quando R2 não foi configurado', async () => {
+  it('retorna erro claro quando o Storage não foi configurado', async () => {
     const unconfigured = await buildApp({
       database,
       frontendUrl: 'http://localhost:5173',
